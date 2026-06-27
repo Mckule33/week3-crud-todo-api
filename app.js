@@ -7,14 +7,29 @@ let todos = [
   { id: 2, task: 'Build CRUD API', completed: false },
 ];
 
-// GET All – Read
-app.get('/todos', (req, res) => {
-  res.status(200).json(todos); // Send array as JSON
+//GET active (= incomplete) todos - read
+app.get('/todos/active', (req, res) => {
+  const activeTodos = todos.filter((t) => t.completed === false);
+  if (activeTodos.length === 0) 
+    return res.status(404).json({ error: 'No active todos found' });
+  res.status(200).json(activeTodos);
+});
+
+
+// GET Particular Todos with that id - Read
+app.get('/todos/:id', (req, res) => {
+  const todo = todos.find((t) => t.id === parseInt(req.params.id));
+  if (!todo) return res.status(404).json({ error: 'Todo not found' });
+  res.status(200).json(todo);
 });
 
 // POST New – Create
 app.post('/todos', (req, res) => {
-  const newTodo = { id: todos.length + 1, ...req.body }; // Auto-ID
+  const { task, completed } = req.body;
+   if (typeof task !== 'string' || typeof completed !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid entry: provide a valid task and completed status'});
+   }
+  const newTodo = { id: todos.length + 1, task, completed }; // Auto-ID
   todos.push(newTodo);
   res.status(201).json(newTodo); // Echo back
 });
